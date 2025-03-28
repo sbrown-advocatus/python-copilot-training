@@ -28,12 +28,19 @@ def create_app(config_class=Config):
     # Register error handlers
     @app.errorhandler(404)
     def not_found_error(error):
+        # Make sure this renders the correct template
         return render_template('errors/404.html'), 404
     
     @app.errorhandler(500)
     def internal_error(error):
         return render_template('errors/500.html'), 500
     
+    # Add a context processor to provide the current year for the footer
+    @app.context_processor
+    def inject_now():
+        return {'now': datetime.datetime.now()}
+    
     return app
 
 from flask import render_template
+import datetime

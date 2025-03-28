@@ -4,7 +4,7 @@ Practice using copilot by implementing a simple Python application.
 
 ## Exercise: Create a TODO file for yourself
 
-Here is a sample first prompt to Copilot:
+Here is a sample first prompt to Copilot :
 
 > @workspace /explain How would I begin to build a Flask app based on the example features #file:README.md?
 > Don't implement any code yet. Suggest me a good architecture for the application.

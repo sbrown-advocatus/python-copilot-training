@@ -1,0 +1,13 @@
+[project]
+name = "python-copilot-training"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "chardet>=5.2.0",
+    "flask==3.1.0",
+    "flask-restful==0.3.10",
+    "matplotlib==3.10.1",
+    "pandas==2.2.3",
+]

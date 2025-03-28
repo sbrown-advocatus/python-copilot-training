@@ -1,0 +1,58 @@
+{% extends 'base.html' %}
+
+{% block title %}Statistics{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>Data Statistics</h2>
+            <a href="{{ url_for('visualize.table_view', file_id=file_id) }}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-table"></i> Table View
+            </a>
+            <a href="{{ url_for('visualize.chart_view', file_id=file_id) }}" class="btn btn-outline-primary mb-3">
+                <i class="fas fa-chart-bar"></i> Chart View
+            </a>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Summary Statistics
+                </div>
+                <div class="card-body">
+                    {% if stats %}
+                        {% for column, column_stats in stats.items() %}
+                            <div class="mb-4">
+                                <h5>{{ column }}</h5>
+                                <table class="table table-sm table-bordered">
+                                    <thead>
+                                        <tr>
+                                            <th>Metric</th>
+                                            <th>Value</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for metric, value in column_stats.items() %}
+                                            <tr>
+                                                <td>{{ metric|capitalize }}</td>
+                                                <td>{{ "%.4f"|format(value) if value is number else value }}</td>
+                                            </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                        {% endfor %}
+                    {% else %}
+                        <div class="alert alert-info">
+                            No numerical columns found for statistical analysis.
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

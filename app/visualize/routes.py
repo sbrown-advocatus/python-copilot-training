@@ -1,12 +1,12 @@
-from flask import render_template, request, redirect, url_for, session, jsonify, flash
+from flask import render_template, request, redirect, url_for, session, jsonify, flash, current_app
 from app.visualize import bp
 from app.utils.storage import get_parsed_data
 import json
 
-@bp.route('/table/<data_id>')
-def table_view(data_id):
+@bp.route('/table/<file_id>')
+def table_view(file_id):
     # Get the parsed data
-    data = get_parsed_data(data_id)
+    data = get_parsed_data(file_id)
     
     if data is None:
         flash('No data found. Please upload a CSV file first.', 'error')
@@ -71,51 +71,105 @@ def table_view(data_id):
                            sort_by=sort_by,
                            sort_order=sort_order,
                            filters=filters,
-                           data_id=data_id)
+                           data_id=file_id)
 
-@bp.route('/chart/<data_id>')
-def chart_view(data_id):
-    # Get the parsed data
-    data = get_parsed_data(data_id)
+@bp.route('/chart/<file_id>', methods=['GET', 'POST'])
+def chart_view(file_id):
+    """Display chart visualization of the data."""
+    data_session = current_app.config['SESSION_STORAGE'].get(file_id)
+    if not data_session:
+        flash('Dataset not found or session expired. Please upload the file again.', 'warning')
+        return redirect(url_for('upload.index'))
     
-    if data is None:
-        flash('No data found. Please upload a CSV file first.', 'error')
-        return redirect(url_for('upload.upload_file'))
+    data = data_session.get('data', None)
+    if data is None or data.empty:
+        flash('No data available for visualization.', 'warning')
+        return redirect(url_for('upload.index'))
     
-    # Get all column names
-    columns = list(data[0].keys()) if data else []
+    columns = data.columns.tolist()
     
-    # Get chart parameters
-    chart_type = request.args.get('chart_type', 'bar')
-    x_axis = request.args.get('x_axis', columns[0] if columns else '')
-    y_axis = request.args.get('y_axis', columns[1] if len(columns) > 1 else '')
+    # Get chart parameters from form
+    chart_type = request.form.get('chart_type', 'bar')
+    x_axis = request.form.get('x_axis', columns[0] if columns else None)
+    y_axis = request.form.get('y_axis', columns[1] if len(columns) > 1 else columns[0])
     
-    # Prepare data for the chart
-    chart_data = {
-        'labels': [row.get(x_axis, '') for row in data],
-        'datasets': [{
-            'label': y_axis,
-            'data': [row.get(y_axis, 0) for row in data],
-        }]
-    }
+    chart_div = None
+    chart_title = f"{y_axis} by {x_axis}"
+    
+    if request.method == 'POST' and x_axis and y_axis:
+        try:
+            import plotly.express as px
+            import plotly.io as pio
+            import plotly.graph_objects as go
+            
+            # Create a subset of data to prevent browser overload
+            plot_data = data.head(1000)  # Limit to 1000 rows for performance
+            
+            # Handle different chart types
+            if chart_type == 'bar':
+                fig = px.bar(plot_data, x=x_axis, y=y_axis, title=chart_title)
+            elif chart_type == 'line':
+                fig = px.line(plot_data, x=x_axis, y=y_axis, title=chart_title)
+            elif chart_type == 'scatter':
+                fig = px.scatter(plot_data, x=x_axis, y=y_axis, title=chart_title)
+            elif chart_type == 'pie':
+                # For pie charts, we may need to aggregate data
+                value_counts = plot_data[x_axis].value_counts().reset_index()
+                value_counts.columns = [x_axis, 'count']
+                fig = px.pie(value_counts, names=x_axis, values='count', title=f"Distribution of {x_axis}")
+            else:
+                fig = px.bar(plot_data, x=x_axis, y=y_axis, title=chart_title)
+                
+            # Make charts responsive
+            fig.update_layout(
+                autosize=True,
+                height=500,  # Fixed height
+                margin=dict(l=50, r=50, b=100, t=100, pad=4),
+                paper_bgcolor="white",
+                plot_bgcolor="white",
+            )
+            
+            # Add gridlines for better readability
+            fig.update_xaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+            fig.update_yaxes(showgrid=True, gridwidth=1, gridcolor='lightgray')
+            
+            # Convert the figure to HTML with optimal settings
+            chart_div = pio.to_html(
+                fig, 
+                full_html=False,
+                include_plotlyjs=False,
+                config={
+                    'responsive': True,
+                    'displayModeBar': True,
+                    'displaylogo': False,
+                    'scrollZoom': True
+                }
+            )
+            
+            current_app.logger.info(f"Chart generated successfully with type: {chart_type}")
+        except Exception as e:
+            flash(f"Error generating chart: {str(e)}", 'danger')
+            current_app.logger.error(f"Chart generation error: {str(e)}")
+            import traceback
+            current_app.logger.error(traceback.format_exc())
     
     return render_template('visualize/chart.html',
-                           title='Data Chart',
-                           chart_data=json.dumps(chart_data),
-                           chart_type=chart_type,
+                           file_id=file_id,
                            columns=columns,
+                           chart_type=chart_type,
                            x_axis=x_axis,
                            y_axis=y_axis,
-                           data_id=data_id)
+                           chart_div=chart_div,
+                           chart_title=chart_title)
 
-@bp.route('/download/<data_id>')
-def download(data_id):
+@bp.route('/download/<file_id>')
+def download(file_id):
     from flask import Response
     import csv
     from io import StringIO
     
     # Get the parsed data
-    data = get_parsed_data(data_id)
+    data = get_parsed_data(file_id)
     
     if data is None:
         flash('No data found. Please upload a CSV file first.', 'error')
@@ -142,15 +196,15 @@ def download(data_id):
     return Response(
         output.getvalue(),
         mimetype="text/csv",
-        headers={"Content-disposition": f"attachment; filename=data_{data_id}.csv"}
+        headers={"Content-disposition": f"attachment; filename=data_{file_id}.csv"}
     )
 
-@bp.route('/stats/<data_id>')
-def statistics(data_id):
+@bp.route('/stats/<file_id>')
+def statistics(file_id):
     import numpy as np
     
     # Get the parsed data
-    data = get_parsed_data(data_id)
+    data = get_parsed_data(file_id)
     
     if data is None:
         flash('No data found. Please upload a CSV file first.', 'error')
@@ -186,4 +240,4 @@ def statistics(data_id):
     return render_template('visualize/stats.html',
                            title='Data Statistics',
                            stats=stats,
-                           data_id=data_id)
+                           file_id=file_id)  # Use file_id consistently

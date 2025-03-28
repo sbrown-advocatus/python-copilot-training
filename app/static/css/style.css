@@ -1,9 +1,11 @@
+/* Base styles */
 body {
-    font-family: Arial, sans-serif;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
+    color: #333;
+    background-color: #f8f9fa;
     margin: 0;
     padding: 20px;
-    color: #333;
 }
 
 .container {
@@ -15,10 +17,52 @@ h1, h2, h3 {
     color: #444;
 }
 
+/* Header styles */
+header {
+    margin-bottom: 20px;
+}
+
+/* Footer styles */
+footer {
+    margin-top: 50px;
+    padding: 20px 0;
+    background-color: #f8f9fa;
+    text-align: center;
+    border-top: 1px solid #e9ecef;
+}
+
+/* Form styles */
+.form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Table styles */
+.table th {
+    position: relative;
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+/* Card styles */
+.card {
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 20px;
+}
+
+.card-header {
+    background-color: #f8f9fa;
+    font-weight: 600;
+}
+
+/* Alert styles */
 .alert {
     padding: 10px;
     margin: 10px 0;
     border-radius: 4px;
+    margin-bottom: 20px;
 }
 
 .alert-error {
@@ -31,4 +75,36 @@ h1, h2, h3 {
     background-color: #d4edda;
     border: 1px solid #c3e6cb;
     color: #155724;
+}
+
+/* Visualization styles */
+.vis-container {
+    padding: 20px;
+    background-color: white;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+/* Chart styles */
+#chart-container {
+    min-height: 500px;
+    width: 100%;
+    background-color: #fff;
+    border: 1px solid #eee;
+    padding: 10px;
+    position: relative;
+}
+
+.js-plotly-plot {
+    min-height: 450px !important;
+    width: 100% !important;
+}
+
+/* Utility classes */
+.mt-large {
+    margin-top: 50px;
+}
+
+.mb-large {
+    margin-bottom: 50px;
 }

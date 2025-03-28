@@ -2,12 +2,14 @@ import os
 from flask import render_template, request, redirect, url_for, current_app, session, flash
 from werkzeug.utils import secure_filename
 from app.upload import bp
-from app.utils.parser import parse_csv
-from app.utils.storage import save_parsed_data
+import pandas as pd
+import uuid
+import chardet
+
+ALLOWED_EXTENSIONS = {'csv'}
 
 def allowed_file(filename):
-    return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 @bp.route('/', methods=['GET', 'POST'])
 def upload_file():
@@ -26,24 +28,56 @@ def upload_file():
         
         if file and allowed_file(file.filename):
             filename = secure_filename(file.filename)
-            filepath = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
-            file.save(filepath)
             
-            # Get delimiter from form
-            delimiter = request.form.get('delimiter', ',')
+            # Save the file temporarily
+            temp_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+            file.save(temp_path)
+            
+            # Determine delimiter (auto-detect or from form)
+            delimiter = request.form.get('delimiter', '')
+            if not delimiter or delimiter == 'auto':
+                # Try to detect the delimiter
+                with open(temp_path, 'rb') as f:
+                    result = chardet.detect(f.read(1024))
+                    encoding = result['encoding']
+                
+                with open(temp_path, 'r', encoding=encoding) as f:
+                    sample = f.readline()
+                    if sample.count(',') > sample.count(';'):
+                        delimiter = ','
+                    else:
+                        delimiter = ';'
             
             try:
-                # Parse the CSV file
-                parsed_data = parse_csv(filepath, delimiter)
+                # Parse the CSV file with pandas
+                df = pd.read_csv(temp_path, delimiter=delimiter)
                 
-                # Save the parsed data
-                data_id = save_parsed_data(parsed_data)
+                # Generate a unique ID for this dataset
+                file_id = str(uuid.uuid4())
                 
-                # Redirect to the visualization page
-                return redirect(url_for('visualize.table_view', data_id=data_id))
+                # Store in server-side session
+                if 'SESSION_STORAGE' not in current_app.config:
+                    current_app.config['SESSION_STORAGE'] = {}
+                
+                current_app.config['SESSION_STORAGE'][file_id] = {
+                    'filename': filename,
+                    'data': df
+                }
+                
+                # Clean up the temporary file
+                os.remove(temp_path)
+                
+                flash(f'File {filename} uploaded and parsed successfully!', 'success')
+                return redirect(url_for('visualize.table_view', file_id=file_id))
             
             except Exception as e:
+                # Clean up the temporary file
+                if os.path.exists(temp_path):
+                    os.remove(temp_path)
                 flash(f'Error parsing CSV file: {str(e)}', 'error')
                 return redirect(request.url)
+        else:
+            flash('Only CSV files are allowed', 'error')
+            return redirect(request.url)
     
-    return render_template('upload/upload.html', title='Upload CSV')
+    return render_template('upload/upload.html', title='Upload CSV File')

@@ -1,0 +1,173 @@
+{% extends 'base.html' %}
+
+{% block title %}Chart Visualization{% endblock %}
+
+{% block styles %}
+<style>
+    /* Ensure chart container has sufficient size and visibility */
+    #chart-container {
+        min-height: 500px;
+        width: 100%;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        padding: 10px;
+        position: relative;
+    }
+    
+    /* Make sure plot is visible */
+    .js-plotly-plot {
+        width: 100% !important;
+        height: 100% !important;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col">
+            <h2>Chart Visualization</h2>
+            <a href="{{ url_for('visualize.table_view', file_id=file_id) }}" class="btn btn-outline-secondary mb-3">
+                <i class="fas fa-table"></i> Table View
+            </a>
+        </div>
+    </div>
+
+    <div class="row mb-3">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    Chart Settings
+                </div>
+                <div class="card-body">
+                    <form id="chartForm" method="post" action="{{ url_for('visualize.chart_view', file_id=file_id) }}">
+                        <div class="row">
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="chartType">Chart Type</label>
+                                    <select class="form-control" id="chartType" name="chart_type">
+                                        <option value="bar" {% if chart_type == 'bar' %}selected{% endif %}>Bar Chart</option>
+                                        <option value="line" {% if chart_type == 'line' %}selected{% endif %}>Line Chart</option>
+                                        <option value="scatter" {% if chart_type == 'scatter' %}selected{% endif %}>Scatter Plot</option>
+                                        <option value="pie" {% if chart_type == 'pie' %}selected{% endif %}>Pie Chart</option>
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="xAxis">X-Axis</label>
+                                    <select class="form-control" id="xAxis" name="x_axis">
+                                        {% for col in columns %}
+                                        <option value="{{ col }}" {% if x_axis == col %}selected{% endif %}>{{ col }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group">
+                                    <label for="yAxis">Y-Axis</label>
+                                    <select class="form-control" id="yAxis" name="y_axis">
+                                        {% for col in columns %}
+                                        <option value="{{ col }}" {% if y_axis == col %}selected{% endif %}>{{ col }}</option>
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="col-md-3">
+                                <div class="form-group mt-4">
+                                    <button type="submit" class="btn btn-primary">Generate Chart</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <div class="card">
+                <div class="card-header">
+                    {{ chart_title|default('Chart') }}
+                </div>
+                <div class="card-body">
+                    <div id="chart-container">
+                        {% if chart_div %}
+                            {{ chart_div|safe }}
+                        {% else %}
+                            <div class="alert alert-info">
+                                Select chart parameters and click "Generate Chart" to visualize your data.
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<!-- Include Plotly.js before any chart rendering -->
+<script src="https://cdn.plot.ly/plotly-2.24.1.min.js"></script>
+<script>
+    // Initialize after DOM is loaded
+    document.addEventListener('DOMContentLoaded', function() {
+        // Handle chart container resizing
+        const chartContainer = document.getElementById('chart-container');
+        
+        if (chartContainer) {
+            // If there's a chart, make sure it's properly initialized
+            const plotlyChart = chartContainer.querySelector('.js-plotly-plot');
+            
+            if (plotlyChart && typeof Plotly !== 'undefined') {
+                console.log('Resizing Plotly chart');
+                Plotly.relayout(plotlyChart, {
+                    autosize: true,
+                    'xaxis.automargin': true,
+                    'yaxis.automargin': true
+                });
+            }
+        }
+        
+        // Smart axis selection
+        const yAxisSelect = document.getElementById('yAxis');
+        const xAxisSelect = document.getElementById('xAxis');
+        
+        if (yAxisSelect && xAxisSelect) {
+            // Try to find a numeric column for Y-axis
+            const allOptions = Array.from(yAxisSelect.options);
+            const numericOptions = [];
+            
+            allOptions.forEach(option => {
+                const colName = option.value.toLowerCase();
+                if (colName.includes('price') || 
+                    colName.includes('amount') || 
+                    colName.includes('total') || 
+                    colName.includes('count') || 
+                    colName.includes('sum') || 
+                    colName.includes('value') || 
+                    colName.match(/qty|quantity|number|age|year|rate|score/)) {
+                    numericOptions.push(option.value);
+                }
+            });
+            
+            if (numericOptions.length > 0 && !yAxisSelect.value) {
+                yAxisSelect.value = numericOptions[0];
+            }
+        }
+    });
+    
+    // Add window resize handler specifically for this page
+    window.addEventListener('resize', function() {
+        const plotlyChart = document.querySelector('.js-plotly-plot');
+        if (plotlyChart && typeof Plotly !== 'undefined') {
+            console.log('Window resized, updating Plotly chart');
+            setTimeout(function() {
+                Plotly.relayout(plotlyChart, {autosize: true});
+            }, 100);
+        }
+    });
+</script>
+{% endblock %}

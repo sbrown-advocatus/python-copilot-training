@@ -18,7 +18,8 @@ dependencies = [
     "pandas>=2.0.0",
     "chardet",
     "werkzeug>=2.3.0",
-    "Jinja2>=3.0.0"
+    "Jinja2>=3.0.0",
+    "plotly"
 ]
 
 [project.optional-dependencies]

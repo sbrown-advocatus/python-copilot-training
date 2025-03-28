@@ -1,5 +1,6 @@
 import uuid
-from flask import session
+from flask import session, current_app
+import pandas as pd
 
 def save_parsed_data(data):
     """
@@ -23,20 +24,32 @@ def save_parsed_data(data):
     
     return data_id
 
-def get_parsed_data(data_id):
+def get_parsed_data(file_id):
     """
-    Retrieve the parsed data from the session.
+    Retrieve parsed data from session storage
     
     Args:
-        data_id (str): Unique ID for the data
+        file_id: Unique identifier for the stored data
         
     Returns:
-        list: The parsed data, or None if not found
+        List of dictionaries representing the data or None if not found
     """
-    if 'csv_data' not in session or data_id not in session['csv_data']:
+    try:
+        # Get data from session storage
+        data_session = current_app.config['SESSION_STORAGE'].get(file_id)
+        if not data_session:
+            return None
+        
+        # Get DataFrame from session
+        df = data_session.get('data')
+        if df is None or df.empty:
+            return None
+        
+        # Convert DataFrame to list of dictionaries for template rendering
+        return df.to_dict('records')
+    except Exception as e:
+        current_app.logger.error(f"Error retrieving parsed data: {str(e)}")
         return None
-    
-    return session['csv_data'][data_id]
 
 def delete_parsed_data(data_id):
     """

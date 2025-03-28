@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="jumbotron">
+    <h1 class="display-4">Welcome to CSV Parser & Visualizer</h1>
+    <p class="lead">Upload, parse, and visualize your CSV data easily.</p>
+    <hr class="my-4">
+    <p>This tool allows you to upload CSV files, view the data in a table format, apply filters, sort columns, and
+        create visualizations.</p>
+    <a class="btn btn-primary btn-lg" href="{{ url_for('upload.upload_file') }}" role="button">Get Started</a>
+</div>
+
+<div class="row mt-5">
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Upload CSV</h5>
+                <p class="card-text">Upload your CSV files with support for different delimiters.</p>
+                <a href="{{ url_for('upload.upload_file') }}" class="btn btn-outline-primary">Upload</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Visualize Data</h5>
+                <p class="card-text">View your data in tables, charts, and apply filters and sorting.</p>
+                <a href="{{ url_for('upload.upload_file') }}" class="btn btn-outline-primary">Start Visualization</a>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card">
+            <div class="card-body">
+                <h5 class="card-title">Export Results</h5>
+                <p class="card-text">Download your processed data in CSV format for further use.</p>
+                <a href="{{ url_for('upload.upload_file') }}" class="btn btn-outline-primary">Process & Export</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

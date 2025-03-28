@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <h2>About CSV Parser & Visualizer</h2>
+        <p>CSV Parser & Visualizer is a Flask-based web application designed to make it easy to work with CSV data.</p>
+
+        <h3>Features</h3>
+        <ul>
+            <li>CSV file upload with support for various delimiters</li>
+            <li>Automatic parsing and data type detection</li>
+            <li>Interactive data tables with pagination</li>
+            <li>Column selection for customized views</li>
+            <li>Data filtering and sorting</li>
+            <li>Chart visualization for numerical data</li>
+            <li>Data statistics for numerical columns</li>
+            <li>Export functionality for processed data</li>
+        </ul>
+
+        <h3>How to Use</h3>
+        <ol>
+            <li>Upload your CSV file using the Upload page</li>
+            <li>View your data in the table view</li>
+            <li>Apply filters and sort columns as needed</li>
+            <li>Select specific columns to display</li>
+            <li>Switch to chart view for visualizing numerical data</li>
+            <li>View statistics for your data</li>
+            <li>Download the processed data for further use</li>
+        </ol>
+    </div>
+</div>
+{% endblock %}

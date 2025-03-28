@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-6 offset-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h2 class="card-title">Upload CSV File</h2>
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="mb-3">
+                        <label for="file" class="form-label">Select CSV File</label>
+                        <input type="file" class="form-control" id="file" name="file" accept=".csv,.txt" required>
+                        <div class="form-text">Supported file types: .csv, .txt</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="delimiter" class="form-label">Delimiter</label>
+                        <select class="form-select" id="delimiter" name="delimiter">
+                            <option value="," selected>Comma (,)</option>
+                            <option value=";">Semicolon (;)</option>
+                            <option value="\t">Tab</option>
+                            <option value="|">Pipe (|)</option>
+                            <option value=" ">Space</option>
+                        </select>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Upload and Parse</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,14 +1,37 @@
+[build-system]
+requires = ["setuptools>=42", "wheel"]
+build-backend = "setuptools.build_meta"
+
 [project]
-name = "python-copilot-training"
+name = "csv-parser-visualizer"
 version = "0.1.0"
-description = "Add your description here"
-readme = "README.md"
-requires-python = ">=3.12"
-dependencies = [
-    "chardet>=5.2.0",
-    "flask==3.1.0",
-    "flask-restful==0.3.10",
-    "flask-session>=0.8.0",
-    "matplotlib==3.10.1",
-    "pandas==2.2.3",
+description = "A Flask application for parsing and visualizing CSV data"
+authors = [
+    {name = "Your Name", email = "your.email@example.com"}
 ]
+readme = "README.md"
+dependencies = [
+    "Flask>=2.3.0",
+    "Flask-Session",
+    "Flask-RESTful>=0.3.10",
+    "matplotlib>=3.7.2",
+    "pandas>=2.0.0",
+    "chardet",
+    "werkzeug>=2.3.0",
+    "Jinja2>=3.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest",
+    "flake8",
+    "black"
+]
+
+[tool.setuptools]
+packages = ["app"]
+
+[tool.black]
+line-length = 88
+target-version = ['py312']
+include = '\.pyi?$'

@@ -42,4 +42,7 @@ This document outlines the rules and guidelines for the implementation of the Fl
 - **Prevent Execution**
     - Under no circumstances should this application be executed in a production environment without thorough testing and security reviews.
     - Add safeguards to prevent accidental execution, such as environment checks or explicit confirmation prompts.
+
+- **pyproject.toml**
+    - Don't change the requirements.txt and simply keep all the requirements in the pyproject.toml.
 ```
